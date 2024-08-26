@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const User = require("./models/User");
+const Place = require("./models/Place");
 const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
@@ -17,7 +18,7 @@ const jwtSecret = "234234234@#$%";
 
 app.use(express.json());
 app.use(cookieParser());
-app.use('/uploads', express.static(__dirname + '/uploads'));
+app.use("/uploads", express.static(__dirname + "/uploads"));
 app.use(
   cors({
     credentials: true,
@@ -97,17 +98,58 @@ app.post("/upload-by-link", async (req, res) => {
   res.json(newName);
 });
 
-const photosMiddleware = multer({dest:"uploads"});
-app.post("/upload",photosMiddleware.array("photos", 100), (req, res) => {
-   const uploadedFiles = [];
-   for (let i = 0; i < req.files.length; i++){
-     const {path, originalname} = req.files[i];
-     const parts = originalname.split(".");
-     const ext = parts[parts.length - 1];
-     const newPath = path + "." + ext;
-     fs.renameSync(path, newPath);
-     uploadedFiles.push(newPath.replace("/uploads", ""));
-   }
-   res.json(uploadedFiles);
+const photosMiddleware = multer({ dest: "uploads" });
+app.post("/upload", photosMiddleware.array("photos", 100), (req, res) => {
+  const uploadedFiles = [];
+  for (let i = 0; i < req.files.length; i++) {
+    const { path, originalname } = req.files[i];
+    const parts = originalname.split(".");
+    const ext = parts[parts.length - 1];
+    const newPath = path + "." + ext;
+    fs.renameSync(path, newPath);
+    uploadedFiles.push(newPath.replace("uploads", ""));
+  }
+  res.json(uploadedFiles);
 });
+
+app.post("/places", (req, res) => {
+  const { token } = req.cookies;
+  const {
+    title,
+    address,
+    photos,
+    description,
+    perks,
+    extraInfo,
+    checkOut,
+    checkIn,
+    maxGuests,
+  } = req.body;
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) throw err;
+    const placeDoc = await Place.create({
+      owner: userData.id,
+      title,
+      address,
+      description,
+      perks,
+      extraInfo,
+      checkIn,
+      checkOut,
+      maxGuests,
+      photos,
+    });
+    res.json(placeDoc);
+  });
+});
+
+app.get("/places", (req, res) => {
+  const { token } = req.cookies;
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    const { id } = userData;
+    const places = await Place.find({ owner: id });
+    res.json(places);
+  });
+})
+
 app.listen(4000, () => console.log("Server started on port 4000"));
