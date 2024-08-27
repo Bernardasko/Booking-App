@@ -117,7 +117,7 @@ app.post("/places", (req, res) => {
   const {
     title,
     address,
-    photos,
+    addedPhotos,
     description,
     perks,
     extraInfo,
@@ -137,7 +137,7 @@ app.post("/places", (req, res) => {
       checkIn,
       checkOut,
       maxGuests,
-      photos,
+      photos: addedPhotos,
     });
     res.json(placeDoc);
   });
@@ -150,6 +150,47 @@ app.get("/places", (req, res) => {
     const places = await Place.find({ owner: id });
     res.json(places);
   });
-})
+});
+
+app.get("/places/:id", async (req, res) => {
+  const { id } = req.params;
+  const place = await Place.findById(id);
+  res.json(place);
+});
+
+app.put("/places", async (req, res) => {
+  const { token } = req.cookies;
+  const {
+    id,
+    title,
+    address,
+    addedPhotos,
+    description,
+    perks,
+    extraInfo,
+    checkOut,
+    checkIn,
+    maxGuests,
+  } = req.body;
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) throw err;
+    const placeDoc = await Place.findById(id);
+    if (userData.id === placeDoc.owner.toString()) {
+      placeDoc.set({
+        title,
+        address,
+        photos: addedPhotos,
+        description,
+        perks,
+        extraInfo,
+        checkOut,
+        checkIn,
+        maxGuests,
+      });
+      await placeDoc.save();
+      res.json("ok");
+    }
+  });
+});
 
 app.listen(4000, () => console.log("Server started on port 4000"));

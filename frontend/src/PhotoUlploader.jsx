@@ -2,7 +2,6 @@ import { useState } from "react";
 import axios from "axios";
 
 function PhotosUlploader({ addedPhotos, onChange }) {
-
   const [photoLink, setPhotoLink] = useState("");
 
   async function addPhotoByLink(e) {
@@ -30,8 +29,8 @@ function PhotosUlploader({ addedPhotos, onChange }) {
       })
       .then((res) => {
         const { data: filenames } = res;
-        onChange((prev) => {
-          return [...prev, filenames];
+        onChange(prev => {
+          return [...prev, ...filenames];
         });
       });
   }

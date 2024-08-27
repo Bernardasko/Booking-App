@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Navigate, useParams } from "react-router-dom";
 import Perks from "../Perks";
 import PhotosUlploader from "../PhotoUlploader";
 import axios from "axios";
 import AccountNav from "../AccountNav";
 
 function PlacesFormPage() {
+  const { id } = useParams();
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
@@ -16,6 +17,25 @@ function PlacesFormPage() {
   const [maxGuests, setMaxGuests] = useState(1);
   const [addedPhotos, setAddedPhotos] = useState([]);
   const [redirect, setRedirect] = useState(false);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+    axios.get("/places/" + id).then((response) => {
+      const { data } = response;
+      setAddedPhotos(data.photos);
+      setTitle(data.title);
+      setAddress(data.address);
+      setDescription(data.description);
+      setPerks(data.perks);
+      setExtraInfo(data.extraInfo);
+      setMaxGuests(data.maxGuests);
+      setCheckIn(data.checkIn);
+      setCheckout(data.checkOut);
+      setAddedPhotos(data.photos);
+    });
+  }, [id]);
 
   function inputHeader(text) {
     return <h2 className="text-2xl mt-4">{text}</h2>;
@@ -34,20 +54,30 @@ function PlacesFormPage() {
     );
   }
 
-  async function addNewPlaces(e) {
+  async function savePlace(e) {
     e.preventDefault();
-    const { data } = await axios.post("/places", {
+    const placeData = {
       title,
       address,
       description,
+      addedPhotos,
       perks,
       extraInfo,
       checkIn,
       checkOut,
       maxGuests,
-      photos: addedPhotos,
-    });
-    setRedirect(true);
+    };
+    if (id) {
+      //update place
+      await axios.put("/places", {
+        id,...placeData
+      });
+      setRedirect(true);
+    } else {
+      // new place
+      await axios.post("/places", placeData);
+      setRedirect(true);
+    }
   }
 
   if (redirect) {
@@ -57,7 +87,7 @@ function PlacesFormPage() {
   return (
     <div>
       <AccountNav />
-      <form onSubmit={addNewPlaces}>
+      <form onSubmit={savePlace}>
         {preInput(
           "Title",
           "Title for your place. should be short and catchy sa in advertisement"
