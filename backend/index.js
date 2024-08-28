@@ -132,12 +132,12 @@ app.post("/places", (req, res) => {
       title,
       address,
       description,
+      photos: addedPhotos,
       perks,
       extraInfo,
       checkIn,
       checkOut,
       maxGuests,
-      photos: addedPhotos,
     });
     res.json(placeDoc);
   });
