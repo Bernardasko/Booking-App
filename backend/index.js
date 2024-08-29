@@ -124,6 +124,7 @@ app.post("/places", (req, res) => {
     checkOut,
     checkIn,
     maxGuests,
+    price
   } = req.body;
   jwt.verify(token, jwtSecret, {}, async (err, userData) => {
     if (err) throw err;
@@ -132,18 +133,19 @@ app.post("/places", (req, res) => {
       title,
       address,
       description,
-      photos: addedPhotos,
       perks,
       extraInfo,
+      photos: addedPhotos,
       checkIn,
       checkOut,
       maxGuests,
+      price
     });
     res.json(placeDoc);
   });
 });
 
-app.get("/places", (req, res) => {
+app.get("/user-places/", (req, res) => {
   const { token } = req.cookies;
   jwt.verify(token, jwtSecret, {}, async (err, userData) => {
     const { id } = userData;
@@ -171,6 +173,7 @@ app.put("/places", async (req, res) => {
     checkOut,
     checkIn,
     maxGuests,
+    price
   } = req.body;
   jwt.verify(token, jwtSecret, {}, async (err, userData) => {
     if (err) throw err;
@@ -186,11 +189,17 @@ app.put("/places", async (req, res) => {
         checkOut,
         checkIn,
         maxGuests,
+        price
       });
       await placeDoc.save();
       res.json("ok");
     }
   });
+});
+
+app.get("/places", async (req, res) => {
+  const places = await Place.find();
+  res.json(places);
 });
 
 app.listen(4000, () => console.log("Server started on port 4000"));

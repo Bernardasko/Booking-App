@@ -3,7 +3,7 @@ import { UserContext } from "../UserContext";
 import {Navigate, useParams } from "react-router-dom";
 import axios from "axios";
 import AccountNav from "../AccountNav";
-import PlacePage from "./PlacePage";
+import PlacesPages from "./PlacesPage";
 
 function ProfilePage() {
   const [redirect, setRedirect] = useState(null);
@@ -36,7 +36,7 @@ function ProfilePage() {
       )}
       {subpage === "places" && (
         <div>
-          <PlacePage />
+          <PlacesPages />
         </div>
       )}
     </div>
